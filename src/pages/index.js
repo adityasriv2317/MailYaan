@@ -2,8 +2,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import GradientText from "@/ui/GradientText";
+import { useEffect } from "react";
 
 export default function Home() {
+  useEffect(() => {
+    const storedAuth = localStorage.getItem("mailyaan-auth");
+    if (storedAuth) {
+      window.location.href = "/dashboard";
+    }
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}

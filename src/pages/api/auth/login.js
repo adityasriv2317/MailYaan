@@ -55,6 +55,8 @@ export default async function handler(req, res) {
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: "7d" }
   );
+  user.refreshToken = refreshToken;
+  await user.save();
 
   return res.status(200).json({
     message: "Login successful.",

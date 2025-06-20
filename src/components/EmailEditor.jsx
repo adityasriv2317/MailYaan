@@ -3,7 +3,12 @@ import { Save, User, Eye, Brain } from "lucide-react";
 import axios from "axios";
 
 // Accept recipients prop
-const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEmails }) => {
+const EmailEditor = ({
+  initialContent,
+  onSave,
+  recipients = [],
+  onPersonalizedEmails,
+}) => {
   const [content, setContent] = useState(initialContent || "");
   const [selectedRecipientIndex, setSelectedRecipientIndex] = useState(0);
   const [previewContent, setPreviewContent] = useState("");
@@ -189,12 +194,12 @@ const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEm
         const responseText =
           response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-      //  console.log("Raw AI Response Text:", responseText); // Log the raw response text
+        //  console.log("Raw AI Response Text:", responseText); // Log the raw response text
 
         // Use the extract function to clean and parse the JSON
         const responseObject = extract(responseText);
 
-      //  console.log("Parsed Response Object:", responseObject); // Log the parsed object
+        //  console.log("Parsed Response Object:", responseObject); // Log the parsed object
 
         if (responseObject && Array.isArray(responseObject)) {
           const newPersonalizedEmails = {};
@@ -226,11 +231,13 @@ const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEm
             // Pass the personalized emails up to parent
             if (onPersonalizedEmails) {
               // Convert to array of { recipient, subject, body }
-              const emailsArray = Object.entries(newPersonalizedEmails).map(([idx, val]) => ({
-                recipient: recipients[idx],
-                subject: val.subject,
-                body: val.body,
-              }));
+              const emailsArray = Object.entries(newPersonalizedEmails).map(
+                ([idx, val]) => ({
+                  recipient: recipients[idx],
+                  subject: val.subject,
+                  body: val.body,
+                })
+              );
               onPersonalizedEmails(emailsArray);
             }
             alert(
@@ -279,16 +286,15 @@ const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEm
   };
 
   return (
-    <div className="email-editor w-full max-w-4xl mx-auto px-4 py-8">
-      <h2 className="text-2xl border-b-2 text-indigo-500 border-b-indigo-600 w-fit mx-auto font-semibold text-center mb-6">
+    <div className="email-editor w-full max-w-4xl mx-auto px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800 my-8">
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-100 text-center mb-6 flex items-center justify-center gap-2">
+        <Eye className="w-7 h-7 text-indigo-400 animate-pulse" />
         Compose Your Email
       </h2>
-
-      {/* Updated hint text & AI Button container */}
+      {/* AI Button and Hint */}
       <div className="w-full text-center relative mb-4">
-        {/* ai button */}
         <button
-          className={`absolute top-0 right-0 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full transition-opacity duration-200 ${
+          className={`absolute top-0 right-0 bg-gradient-to-r from-indigo-700 to-blue-700 hover:from-indigo-800 hover:to-blue-800 text-white font-bold py-2 px-4 rounded-full shadow transition-opacity duration-200 ${
             recipients.length === 0 ? "opacity-50 cursor-not-allowed" : ""
           }`}
           onClick={handleEmailGenerate}
@@ -301,52 +307,44 @@ const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEm
         >
           <Brain className={`${aiLoading ? "animate-spin" : ""} w-5 h-5`} />
         </button>
-
-        <p className="text-xs text-gray-500">
-          Use placeholders like FirstName, Email, Organization, Achievement,
-          Role in your email template below.
+        <p className="text-xs text-indigo-300">
+          Use placeholders like{" "}
+          <span className="font-semibold">
+            FirstName, Email, Organization, Achievement, Role
+          </span>{" "}
+          in your email template below.
         </p>
-        <p className="mt-1 mb-2 text-xs text-gray-500">
+        <p className="mt-1 mb-2 text-xs text-indigo-400">
           Click the <Brain size={12} className="inline -mt-1" /> button to
-          generate personalized content for all recipients based on the template <br/>
+          generate personalized content for all recipients based on the template
           structure and their data.
         </p>
       </div>
-
-      <div className="email-editor-container border border-gray-300 rounded-lg overflow-hidden shadow-sm mb-6 bg-white p-1">
+      <div className="email-editor-container border border-indigo-700 rounded-xl overflow-hidden shadow bg-indigo-900/60 p-1 mb-6">
         <textarea
-          value={currentEditorText} // Bind value to the new state
-          onChange={handleEditorChange} // Use the updated handler
-          className="w-full min-h-80 p-2 border-none focus:ring-0 focus:outline-none resize-none text-sm font-mono"
+          value={currentEditorText}
+          onChange={handleEditorChange}
+          className="w-full min-h-80 p-4 border-none focus:ring-0 focus:outline-none resize-none text-base font-mono bg-indigo-950 text-indigo-100 placeholder:text-indigo-400"
           placeholder="Enter your base email template here. Use HTML tags for formatting..."
         />
       </div>
-
-      {/* Recipient Selector - Only show if recipients exist */}
       {recipients.length === 0 && (
-        <p className="mb-6 text-center text-gray-500 italic">
+        <p className="mb-6 text-center text-indigo-400 italic">
           Upload and confirm a recipient list above to enable preview.
         </p>
       )}
-
-      {/* Preview Section - Only show if recipients exist */}
       {recipients.length > 0 && (
         <div className="email-preview mt-8">
-          <div className="flex items-center justify-between mb-4">
-            {" "}
-            {/* Adjusted margin */}
-            <h3 className="text-xl font-semibold text-gray-700 flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
+            <h3 className="text-xl font-semibold text-indigo-100 flex items-center gap-2">
               <Eye size={20} /> Live Preview (for{" "}
               {recipients[selectedRecipientIndex]?.FirstName || "Selected User"}
               )
             </h3>
-            {/* Moved recipient selector here for better layout */}
             <div className="flex items-center gap-2">
-              {" "}
-              {/* Adjusted alignment */}
               <label
                 htmlFor="recipient-select"
-                className="text-sm font-medium text-gray-700 flex items-center gap-1" // Reduced gap
+                className="text-sm font-medium text-indigo-200 flex items-center gap-1"
               >
                 <User size={16} /> Recipient:
               </label>
@@ -354,10 +352,14 @@ const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEm
                 id="recipient-select"
                 value={selectedRecipientIndex}
                 onChange={handleRecipientChange}
-                className="block w-auto pl-3 pr-10 py-1.5 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm" // Adjusted padding/border
+                className="block w-auto pl-3 pr-10 py-1.5 text-base border border-indigo-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm bg-indigo-900 text-indigo-100"
               >
                 {recipients.map((recipient, index) => (
-                  <option key={index} value={index}>
+                  <option
+                    key={index}
+                    value={index}
+                    className="bg-indigo-900 text-indigo-100"
+                  >
                     {`${index + 1}. ${recipient.FirstName || "N/A"} (${
                       recipient.Email || "N/A"
                     })`}
@@ -366,22 +368,19 @@ const EmailEditor = ({ initialContent, onSave, recipients = [], onPersonalizedEm
               </select>
             </div>
           </div>
-          {/* Preview Content Area */}
           <div
-            className="preview-content p-4 border border-gray-300 rounded-lg bg-gray-50 min-h-[200px] shadow-inner prose max-w-none"
-            dangerouslySetInnerHTML={{ __html: String(previewContent || "") }} // Preview uses HTML content
+            className="preview-content p-4 border border-indigo-700 rounded-lg bg-indigo-900/60 min-h-[200px] shadow-inner prose prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: String(previewContent || "") }}
           />
         </div>
       )}
-
-      {/* Save Button */}
       <div className="email-editor-actions mt-6 text-right">
         <button
-          className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 ${
+          className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gradient-to-r from-indigo-700 to-blue-700 hover:from-indigo-800 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 ${
             recipients.length === 0 ? "opacity-50 cursor-not-allowed" : ""
           }`}
           onClick={handleSave}
-          disabled={recipients.length === 0} // Disable if no recipients
+          disabled={recipients.length === 0}
           title={
             recipients.length === 0
               ? "Upload recipients to enable saving"

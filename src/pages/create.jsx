@@ -1,21 +1,33 @@
 import React, { useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import CSVParser from "../components/CSVparser";
 import EmailEditor from "../components/EmailEditor";
 import SendMails from "../components/SendMails";
+import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
 
 const Hero = () => {
   return (
-    <div className="relative isolate px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl py-32 sm:py-48 lg:py-44">
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+      className="relative isolate px-6 lg:px-8"
+    >
+      <div className="mx-auto w-full py-24 sm:py-36 lg:py-32">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+          <motion.h1
+            className="text-3xl sm:text-6xl font-extrabold tracking-tight text-indigo-100 flex items-center justify-center gap-3 mb-4"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <Sparkles className="w-8 h-8 text-indigo-400 animate-pulse" />
             Create an instant mailing list
-          </h1>
+          </motion.h1>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <button
-              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              type="button"
+              className="rounded-lg bg-gradient-to-r from-indigo-700 to-blue-700 px-5 py-3 text-base font-semibold text-white shadow-lg hover:from-indigo-800 hover:to-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition"
               onClick={() => {
                 const csvParserSection = document.getElementById("csv-parser");
                 if (csvParserSection) {
@@ -26,15 +38,15 @@ const Hero = () => {
               Start
             </button>
             <a
-              href="#features"
-              className="text-sm font-semibold leading-6 text-gray-900"
+              href="/learn"
+              className="text-base font-semibold leading-6 text-indigo-200 hover:text-indigo-100 transition"
             >
               Learn more <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -97,22 +109,42 @@ const MailingLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950">
+      <main className="flex-grow container mx-auto px-2 sm:px-4 py-8">
         <Hero />
-        <CSVParser onDataConfirm={handleDataConfirm} />
-        <EmailEditor
-          recipients={confirmedRecipients}
-          onSave={handleEmailSave}
-          initialContent={baseTemplate}
-          onPersonalizedEmails={handlePersonalizedEmails}
-        />
+        <motion.div
+          id="csv-parser"
+          className="my-12 bg-indigo-950/80 rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto border border-indigo-800"
+          initial={{ scale: 0.97, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <CSVParser onDataConfirm={handleDataConfirm} />
+        </motion.div>
+        <motion.div
+          className="email-editor my-12 bg-indigo-950/80 rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto border border-indigo-800"
+          initial={{ scale: 0.97, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <EmailEditor
+            recipients={confirmedRecipients}
+            onSave={handleEmailSave}
+            initialContent={baseTemplate}
+            onPersonalizedEmails={handlePersonalizedEmails}
+          />
+        </motion.div>
         {isReady && personalizedEmails.length > 0 && (
-          <SendMails emails={personalizedEmails} onClose={handleClose} />
+          <motion.div
+            className="my-12 bg-indigo-950/80 rounded-2xl shadow-xl p-8 w-full max-w-2xl mx-auto border border-indigo-800"
+            initial={{ scale: 0.97, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <SendMails emails={personalizedEmails} onClose={handleClose} />
+          </motion.div>
         )}
       </main>
-      <Footer />
     </div>
   );
 };

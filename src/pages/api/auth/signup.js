@@ -39,8 +39,6 @@ export default async function handler(req, res) {
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({ name, gender, email, password: hashedPassword });
-  await user.save();
-
   // JWT token generation
   const accessToken = jwt.sign(
     { id: user._id, email: user.email, name: user.name },
@@ -52,6 +50,8 @@ export default async function handler(req, res) {
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: '7d' }
   );
+  user.refreshToken = refreshToken;
+  await user.save();
 
   return res.status(201).json({
     message: 'Signup successful.',

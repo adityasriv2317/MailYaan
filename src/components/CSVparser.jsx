@@ -62,8 +62,11 @@ const CSVParser = ({ onDataConfirm }) => {
             if (onDataConfirm) onDataConfirm([]);
           } else {
             // Filter out rows where all required fields might be empty
-            const validData = results.data.filter((row) =>
-              requiredColumns.some((col) => row[col] && String(row[col]).trim() !== "") // Ensure value is treated as string
+            const validData = results.data.filter(
+              (row) =>
+                requiredColumns.some(
+                  (col) => row[col] && String(row[col]).trim() !== ""
+                ) // Ensure value is treated as string
             );
             if (validData.length === 0 && results.data.length > 0) {
               setError(
@@ -123,17 +126,19 @@ const CSVParser = ({ onDataConfirm }) => {
   };
 
   return (
-    // Main container with padding and margin
-    <div id="csv-parser" className="csv-parser container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+    <div
+      id="csv-parser"
+      className="csv-parser container mx-auto px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800 my-8"
+    >
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-100 text-center mb-6 flex items-center justify-center gap-2">
+        <UploadCloud className="w-7 h-7 text-indigo-400 animate-bounce" />
         Upload Your Recipient List
       </h2>
-
       {/* File Input Section */}
-      <div className="mb-6 p-6 border border-dashed border-indigo-300 rounded-lg bg-indigo-50 text-center">
+      <div className="mb-6 p-6 border border-dashed border-indigo-400 rounded-xl bg-indigo-900/60 text-center flex flex-col items-center">
         <label
           htmlFor="csv-upload"
-          className="cursor-pointer inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+          className="cursor-pointer inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-gradient-to-r from-indigo-700 to-blue-700 hover:from-indigo-800 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 shadow"
         >
           <UploadCloud size={20} className="mr-2" />
           Choose CSV File
@@ -143,100 +148,96 @@ const CSVParser = ({ onDataConfirm }) => {
           type="file"
           accept=".csv"
           onChange={handleFileUpload}
-          className="hidden" // Hide the default input
+          className="hidden"
         />
         {fileName && (
-          <p className="mt-3 text-sm text-gray-600">
+          <p className="mt-3 text-sm text-indigo-200">
             Selected file: <span className="font-medium">{fileName}</span>
           </p>
         )}
-        {/* Updated helper text to mention FirstName */}
-        <p className="mt-2 text-xs text-gray-500">
-          Required columns: FirstName, Email, Organization, Achievement, Role
+        <p className="mt-2 text-xs text-indigo-300">
+          Required columns:{" "}
+          <span className="font-semibold">
+            FirstName, Email, Organization, Achievement, Role
+          </span>
         </p>
       </div>
-
       {/* Error Message Display */}
       {error && (
         <div
-          className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md"
+          className="mb-6 p-4 bg-red-900/80 border border-red-500 text-red-200 rounded-lg shadow"
           role="alert"
         >
           <p className="font-bold">Error</p>
           <p>{error}</p>
         </div>
       )}
-
-      {/* Make sure the Confirm button calls handleConfirmData */}
-      {/* Make sure the Remove button calls handleRemoveData */}
       {/* Data Table Display */}
       {parsedData.length > 0 && (
-        <div className="overflow-x-auto border border-indigo-600 shadow-md shadow-indigo-200 rounded-lg">
-          {/* Header section for the table preview */}
+        <div className="overflow-x-auto border border-indigo-700 shadow-lg rounded-xl bg-indigo-950/90">
           <div className="flex justify-between items-center mb-4 px-4 pt-4">
-            <h3 className="text-xl font-semibold text-gray-700">
-              Preview Data ({parsedData.length} rows)
+            <h3 className="text-xl font-semibold text-indigo-100">
+              Preview Data{" "}
+              <span className="text-indigo-400">
+                ({parsedData.length} rows)
+              </span>
             </h3>
-            {/* Confirm and Remove Buttons */}
             <div className="flex gap-2">
               <button
-                onClick={handleRemoveData} // Ensure this calls the updated handler
+                onClick={handleRemoveData}
                 title="Remove Data"
-                className="p-2 rounded-full text-red-600 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
+                className="p-2 rounded-full text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
               >
                 <X size={20} />
               </button>
               <button
-                onClick={handleConfirmData} // Ensure this calls the updated handler
+                onClick={handleConfirmData}
                 title="Confirm Data"
-                className="p-2 rounded-full text-green-600 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors duration-200"
-                // disabled={isConfirmed} // Optionally disable after confirming
+                className="p-2 rounded-full text-green-400 bg-green-900/60 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors duration-200"
               >
                 <Check size={20} />
               </button>
             </div>
           </div>
-
-          <table className="min-w-full divide-y divide-gray-200">
-            {/* Ensure no whitespace directly inside thead or between thead and tr */}
-            <thead className="bg-indigo-500 text-white">
+          <table className="min-w-full divide-y divide-indigo-800">
+            <thead className="bg-indigo-800 text-indigo-100">
               <tr>
-                {/* Updated headers to expect FirstName */}
-                {["FirstName", "Email", "Organization", "Achievement", "Role"].map(
-                  (header) => (
-                    <th
-                      key={header}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                    >
-                      {/* Display header, split camelCase for readability */}
-                      {header.replace(/([A-Z])/g, " $1").trim()}
-                    </th>
-                  )
-                )}
+                {[
+                  "FirstName",
+                  "Email",
+                  "Organization",
+                  "Achievement",
+                  "Role",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
+                  >
+                    {header.replace(/([A-Z])/g, " $1").trim()}
+                  </th>
+                ))}
               </tr>
             </thead>
-            {/* Ensure no whitespace between thead and tbody */}
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-indigo-950 divide-y divide-indigo-900">
               {parsedData.map((row, index) => (
                 <tr
                   key={index}
-                  className="hover:bg-gray-50 transition-colors duration-150"
+                  className="hover:bg-indigo-900/80 transition-colors duration-150"
                 >
-                  {/* Use row.FirstName directly */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                     {row.FirstName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                     {row.Email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                     {row.Organization}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                     {row.Achievement}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                     {row.Role}
                   </td>
                 </tr>

@@ -20,7 +20,10 @@ export default function Dashboard() {
     if (user) {
       try {
         const parsed = JSON.parse(user);
-        setUserName(parsed.name || "User");
+        // Show first name if possible
+        const fullName = parsed.name || "User";
+        const firstName = fullName.split(" ")[0];
+        setUserName(firstName);
       } catch {
         setUserName("User");
       }
@@ -77,7 +80,7 @@ export default function Dashboard() {
               className="text-indigo-100 font-medium text-base"
               id="dashboard-username"
             >
-              {/* Username will be set by useEffect */}
+              {userName}
             </span>
           </div>
           <button
@@ -122,7 +125,10 @@ export default function Dashboard() {
             <MailCheck className="w-5 h-5 text-indigo-400" /> (Demo) No emails
             yet.
           </span>
-          <button className="flex items-center gap-2 justify-center bg-gradient-to-r from-indigo-700 to-blue-700 text-white py-2.5 rounded-lg font-semibold hover:from-indigo-800 hover:to-blue-800 transition text-base shadow">
+          <button
+            onClick={() => router.push("/create")}
+            className="flex items-center gap-2 justify-center bg-gradient-to-r from-indigo-700 to-blue-700 text-white py-2.5 rounded-lg font-semibold hover:from-indigo-800 hover:to-blue-800 transition text-base shadow"
+          >
             <PlusCircle className="w-5 h-5" /> Create New Campaign
           </button>
         </motion.div>
