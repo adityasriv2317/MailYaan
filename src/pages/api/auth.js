@@ -42,6 +42,26 @@ export default async function handler(req, res) {
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = new User({ name, gender, email, password: hashedPassword });
       await user.save();
+      // JWT token generation can be added here if needed
+      const accessToken = jwt.sign(
+        { id: user._id, email: user.email, name: user.name },
+        process.env.JWT_SECRET,
+        { expiresIn: "15m" }
+      );
+      const refreshToken = jwt.sign(
+        { id: user._id, email: user.email, name: user.name },
+        process.env.JWT_REFRESH_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      user.refreshToken = refreshToken;
+      await user.save();
+
+      res.setHeader("Set-Cookie", [
+        `mailyaan-access-token=${accessToken}; HttpOnly; Path=/; Max-Age=900; SameSite=Lax`,
+        `mailyaan-refresh-token=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`,
+      ]);
+
       return res.status(201).json({ message: "Signup successful." });
     } else if (req.url.endsWith("/login")) {
       // Login

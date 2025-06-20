@@ -84,13 +84,19 @@ export default function Signup() {
     setLoading(true);
     try {
       // Use the correct Next.js API route for signup
-      const res = await axios.post("/api/auth/signup", {
-        name,
-        gender,
-        email,
-        password,
-        recaptchaToken: recaptchaValue,
-      });
+      const res = await axios.post(
+        "/api/auth/signup",
+        {
+          name,
+          gender,
+          email,
+          password,
+          recaptchaToken: recaptchaValue,
+        },
+        {
+          withCredentials: true,
+        }
+      );
       if (res.status !== 201) {
         setError(res.data.message || "Signup failed.");
         setLoading(false);

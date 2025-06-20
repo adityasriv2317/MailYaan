@@ -42,11 +42,15 @@ export default function Login() {
     if (!valid) return;
     setLoading(true);
     try {
-      const res = await axios.post("/api/auth/login", {
-        email,
-        password,
-        recaptchaToken: recaptchaValue,
-      });
+      const res = await axios.post(
+        "/api/auth/login",
+        {
+          email,
+          password,
+          recaptchaToken: recaptchaValue,
+        },
+        { withCredentials: true }
+      );
       if (res.status !== 200) {
         setError(res.data.message || "Login failed.");
         setLoading(false);

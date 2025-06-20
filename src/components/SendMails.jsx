@@ -4,7 +4,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 // import "../../styles/customScrollbar.css";
 
-import "@/styles/customScrollbar.css"; 
+import "@/styles/customScrollbar.css";
 
 const SendMails = ({ emails = [], onSend, onClose }) => {
   const [scheduledTime, setScheduledTime] = useState("");
@@ -15,21 +15,51 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
       alert("Please select a scheduled time.");
       return;
     }
+    const user = localStorage.getItem("mailyaan-user");
+    let userMail = "";
+    try {
+      userMail = user ? JSON.parse(user).email : "";
+    } catch (e) {
+      userMail = "";
+    }
+    const token = localStorage.getItem("mailyaan-access-token"); // Get JWT token
     if (onSend) onSend({ scheduledTime, emails });
     if (!isSending) {
       try {
         setIsSending(true);
-        const sendApi = import.meta.env.VITE_SEND_BULK;
-        const response = await axios.post(sendApi, {
-          scheduledTime,
-          emails,
-        });
+        if (!userMail) {
+          alert("Could not determine your sender email. Please log in again.");
+          return;
+        }
+
+        // console.log("Sending emails with scheduled time:", scheduledTime);
+        console.log("Emails to send:", emails);
+        console.log("User email:", userMail);
+        const response = await axios.post(
+          "/api/send",
+          {
+            scheduledTime,
+            emails,
+            userMail,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (response.status === 200) {
           alert("Emails sent successfully");
         }
       } catch (error) {
-        alert("Error sending emails");
-        console.error(error);
+        if (error.response && error.response.status === 401) {
+          alert("Session expired or unauthorized. Please log in again.");
+          window.location.href = "/login";
+        } else {
+          alert("Error sending emails");
+          console.error(error);
+        }
       } finally {
         setIsSending(false);
       }
@@ -45,7 +75,7 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="relative w-full max-w-6xl mx-auto rounded-3xl border border-indigo-500 bg-gradient-to-br  shadow-2xl px-6 py-10 overflow-y-auto max-h-[90vh] custom-scrollbar"
+          className="relative w-full max-w-6xl mx-auto rounded-3xl border border-indigo-500 bg-indigo-950/50 shadow-2xl px-6 py-10 overflow-y-auto max-h-[90vh] custom-scrollbar"
           initial={{ scale: 0.95, y: 40, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
           exit={{ scale: 0.95, y: 40, opacity: 0 }}
@@ -116,16 +146,26 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
               <tbody>
                 {emails.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-zinc-500 text-lg">
+                    <td
+                      colSpan={5}
+                      className="text-center py-8 text-zinc-500 text-lg"
+                    >
                       No emails to send.
                     </td>
                   </tr>
                 ) : (
                   emails.map((mail, idx) => (
-                    <tr key={idx} className="hover:bg-indigo-950/40 transition-colors">
-                      <td className="px-4 py-3 text-indigo-200 font-mono">{idx + 1}</td>
+                    <tr
+                      key={idx}
+                      className="hover:bg-indigo-950/40 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-indigo-200 font-mono">
+                        {idx + 1}
+                      </td>
                       <td className="px-4 py-3 text-zinc-100">
-                        {mail.recipient?.FirstName || mail.recipient?.Name || "N/A"}
+                        {mail.recipient?.FirstName ||
+                          mail.recipient?.Name ||
+                          "N/A"}
                       </td>
                       <td className="px-4 py-3 text-indigo-100">
                         {mail.recipient?.Email || "N/A"}
