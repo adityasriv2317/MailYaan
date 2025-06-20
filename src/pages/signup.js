@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import {
+  ChevronLeft,
+  Eye,
+  EyeOff,
+  Mail as MailIcon,
+  Lock,
+  UserPlus,
+} from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function Signup() {
@@ -17,6 +24,10 @@ export default function Signup() {
   const [confirmError, setConfirmError] = useState("");
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState("");
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [genderError, setGenderError] = useState("");
 
   function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -32,12 +43,22 @@ export default function Signup() {
   function handleSignup(e) {
     e.preventDefault();
     let valid = true;
+    setNameError("");
+    setGenderError("");
     setEmailError("");
     setPasswordError("");
     setConfirmError("");
     setError("");
     setRecaptchaError("");
 
+    if (!name.trim()) {
+      setNameError("Please enter your name.");
+      valid = false;
+    }
+    if (!gender) {
+      setGenderError("Please select your gender.");
+      valid = false;
+    }
     if (!validateEmail(email)) {
       setEmailError("Please enter a valid email address.");
       valid = false;
@@ -78,18 +99,19 @@ export default function Signup() {
       </button>
       <motion.form
         onSubmit={handleSignup}
-        className="w-full max-w-md bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-indigo-900 p-6 sm:p-10 flex flex-col gap-6 relative"
-        initial={{ scale: 0.95, opacity: 0 }}
+        className="w-full max-w-sm bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800/90 backdrop-blur-md rounded-xl shadow-xl border border-indigo-900 p-4 sm:p-6 flex flex-col gap-4 relative"
+        initial={{ scale: 0.97, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <div className="flex flex-col items-center mb-2">
+        <div className="flex flex-col items-center mb-1">
           <motion.h2
-            className="text-2xl sm:text-3xl font-extrabold text-indigo-100 tracking-tight text-center"
-            initial={{ x: -30, opacity: 0 }}
+            className="text-xl sm:text-2xl font-extrabold text-indigo-100 tracking-tight text-center flex items-center gap-2"
+            initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
+            <UserPlus className="w-6 h-6 text-indigo-400" />
             Create your <span className="text-indigo-400">MailYaan</span>{" "}
             account
           </motion.h2>
@@ -106,26 +128,98 @@ export default function Signup() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div className="flex flex-col gap-1">
-          <motion.input
-            type="email"
-            placeholder="Email"
-            className={`border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base placeholder:text-indigo-400 ${
-              emailError ? "border-red-500" : ""
-            }`}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
-            onBlur={() =>
-              setEmailError(
-                validateEmail(email)
-                  ? ""
-                  : "Please enter a valid email address."
-              )
-            }
-          />
+        {/* Name Field */}
+        <div className="flex flex-col gap-0">
+          <div className="relative">
+            <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none" />
+            <motion.input
+              type="text"
+              placeholder="Full Name"
+              className={`pl-10 border w-full border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-2.5 rounded-lg transition outline-none text-sm placeholder:text-indigo-400 ${
+                nameError ? "border-red-500" : ""
+              }`}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              initial={{ x: -15, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              onBlur={() =>
+                setNameError(name.trim() ? "" : "Please enter your name.")
+              }
+            />
+          </div>
+          <AnimatePresence>
+            {nameError && (
+              <motion.div
+                className="text-red-400 text-xs pl-1"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+              >
+                {nameError}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        {/* Gender Field */}
+        <div className="flex flex-col gap-0">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none">
+              <UserPlus className="w-5 h-5 text-indigo-400" />
+            </span>
+            <select
+              className={`pl-10 border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-2.5 rounded-lg transition outline-none text-sm appearance-none w-full ${
+                genderError ? "border-red-500" : ""
+              }`}
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              onBlur={() =>
+                setGenderError(gender ? "" : "Please select your gender.")
+              }
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer_not_to_say">Prefer not to say</option>
+            </select>
+          </div>
+          <AnimatePresence>
+            {genderError && (
+              <motion.div
+                className="text-red-400 text-xs pl-1"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+              >
+                {genderError}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <div className="flex flex-col gap-0">
+          <div className="relative">
+            <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none" />
+            <motion.input
+              type="email"
+              placeholder="Email"
+              className={`pl-10 border w-full border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-2.5 rounded-lg transition outline-none text-sm placeholder:text-indigo-400 ${
+                emailError ? "border-red-500" : ""
+              }`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              onBlur={() =>
+                setEmailError(
+                  validateEmail(email)
+                    ? ""
+                    : "Please enter a valid email address."
+                )
+              }
+            />
+          </div>
           <AnimatePresence>
             {emailError && (
               <motion.div
@@ -141,10 +235,11 @@ export default function Signup() {
         </div>
         <div className="relative flex flex-col gap-0">
           <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none" />
             <motion.input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className={`border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base w-full pr-12 placeholder:text-indigo-400 ${
+              className={`pl-10 border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-2.5 rounded-lg transition outline-none text-sm w-full pr-12 placeholder:text-indigo-400 ${
                 passwordError ? "border-red-500" : ""
               }`}
               value={password}
@@ -188,10 +283,11 @@ export default function Signup() {
         </div>
         <div className="relative flex flex-col gap-0">
           <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none" />
             <motion.input
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
-              className={`border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base w-full pr-12 placeholder:text-indigo-400 ${
+              className={`pl-10 border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-2.5 rounded-lg transition outline-none text-sm w-full pr-12 placeholder:text-indigo-400 ${
                 confirmError ? "border-red-500" : ""
               }`}
               value={confirmPassword}

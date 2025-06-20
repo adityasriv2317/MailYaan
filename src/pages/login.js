@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff, Mail as MailIcon, Lock } from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
@@ -59,11 +59,12 @@ export default function Login() {
       >
         <div className="flex flex-col items-center mb-2">
           <motion.h2
-            className="text-2xl sm:text-3xl font-extrabold text-indigo-100 tracking-tight text-center"
+            className="text-2xl sm:text-3xl font-extrabold text-indigo-100 tracking-tight text-center flex items-center gap-2"
             initial={{ x: -30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
+            <Lock className="w-7 h-7 text-indigo-400" />
             Login to <span className="text-indigo-400">MailYaan</span>
           </motion.h2>
         </div>
@@ -80,25 +81,28 @@ export default function Login() {
           )}
         </AnimatePresence>
         <div className="flex flex-col gap-1">
-          <motion.input
-            type="email"
-            placeholder="Email"
-            className={`border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base placeholder:text-indigo-400 ${
-              emailError ? "border-red-500" : ""
-            }`}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
-            onBlur={() =>
-              setEmailError(
-                validateEmail(email)
-                  ? ""
-                  : "Please enter a valid email address."
-              )
-            }
-          />
+          <div className="relative">
+            <MailIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none" />
+            <motion.input
+              type="email"
+              placeholder="Email"
+              className={`pl-10 border w-full border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base placeholder:text-indigo-400 ${
+                emailError ? "border-red-500" : ""
+              }`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              onBlur={() =>
+                setEmailError(
+                  validateEmail(email)
+                    ? ""
+                    : "Please enter a valid email address."
+                )
+              }
+            />
+          </div>
           <AnimatePresence>
             {emailError && (
               <motion.div
@@ -114,10 +118,11 @@ export default function Login() {
         </div>
         <div className="relative flex flex-col gap-0">
           <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-400 pointer-events-none" />
             <motion.input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className={`border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base w-full pr-12 placeholder:text-indigo-400 ${
+              className={`pl-10 border border-indigo-800 bg-gray-900 text-indigo-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 p-3 rounded-lg transition outline-none text-base w-full pr-12 placeholder:text-indigo-400 ${
                 passwordError ? "border-red-500" : ""
               }`}
               value={password}
