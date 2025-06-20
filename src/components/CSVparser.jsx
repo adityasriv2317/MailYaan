@@ -1,17 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Papa from "papaparse";
 // Import necessary icons
 import { UploadCloud, Check, X } from "lucide-react";
-
-// Remove the getFirstName helper function as it's no longer needed
-// const getFirstName = (fullName) => { ... };
 
 // Accept onDataConfirm prop
 const CSVParser = ({ onDataConfirm }) => {
   const [parsedData, setParsedData] = useState([]);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
-  // const [isConfirmed, setIsConfirmed] = useState(false); // Keep track if data is confirmed locally if needed
+  const bottomRef = useRef(null); // Ref for the bottom of the component
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -26,14 +23,9 @@ const CSVParser = ({ onDataConfirm }) => {
         header: true,
         skipEmptyLines: true, // Skip empty lines
         complete: (results) => {
-          // Validate if the CSV has required columns - Changed "Name" to "FirstName"
-          const requiredColumns = [
-            "FirstName", // Expect FirstName directly
-            "Email",
-            "Organization",
-            "Achievement",
-            "Role",
-          ];
+          // Require Name and Email, Description is optional
+          const requiredColumns = ["Name", "Email"];
+          const optionalColumns = ["Description"];
 
           const headerRow = results.meta.fields;
           if (!headerRow) {
@@ -51,22 +43,20 @@ const CSVParser = ({ onDataConfirm }) => {
           );
 
           if (missingColumns.length > 0) {
-            // Updated error message to reflect FirstName requirement
             setError(
               `Missing required columns: ${missingColumns.join(
                 ", "
-              )}. Please ensure your CSV has 'FirstName', 'Email', 'Organization', 'Achievement', and 'Role' columns.`
+              )}. Please ensure your CSV has 'Name' and 'Email' columns.`
             );
             setParsedData([]);
             setFileName(""); // Clear filename on error
             if (onDataConfirm) onDataConfirm([]);
           } else {
             // Filter out rows where all required fields might be empty
-            const validData = results.data.filter(
-              (row) =>
-                requiredColumns.some(
-                  (col) => row[col] && String(row[col]).trim() !== ""
-                ) // Ensure value is treated as string
+            const validData = results.data.filter((row) =>
+              requiredColumns.some(
+                (col) => row[col] && String(row[col]).trim() !== ""
+              )
             );
             if (validData.length === 0 && results.data.length > 0) {
               setError(
@@ -99,13 +89,15 @@ const CSVParser = ({ onDataConfirm }) => {
 
   // Call onDataConfirm when data is confirmed
   const handleConfirmData = () => {
-    // console.log("Data confirmed in CSVParser:", parsedData);
-    // setIsConfirmed(true);
     if (onDataConfirm) {
       onDataConfirm(parsedData); // Pass the data up to the parent
     }
-    // Keep the alert or provide other feedback
-    // alert(`Confirmed ${parsedData.length} rows. You can now compose your email below.`);
+    // Scroll to bottom when tick is clicked
+    setTimeout(() => {
+      if (bottomRef.current) {
+        bottomRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100); // Delay to ensure any parent updates
   };
 
   // Call onDataConfirm with empty array when data is removed
@@ -125,10 +117,19 @@ const CSVParser = ({ onDataConfirm }) => {
     }
   };
 
+  // Remove a single recipient by index
+  const handleRemoveRecipient = (index) => {
+    const updatedData = parsedData.filter((_, i) => i !== index);
+    setParsedData(updatedData);
+    if (onDataConfirm) {
+      onDataConfirm(updatedData);
+    }
+  };
+
   return (
     <div
       id="csv-parser"
-      className="csv-parser container mx-auto px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800 my-8"
+      className="csv-parser container mx-auto px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800"
     >
       <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-100 text-center mb-6 flex items-center justify-center gap-2">
         <UploadCloud className="w-7 h-7 text-indigo-400 animate-bounce" />
@@ -156,10 +157,9 @@ const CSVParser = ({ onDataConfirm }) => {
           </p>
         )}
         <p className="mt-2 text-xs text-indigo-300">
-          Required columns:{" "}
-          <span className="font-semibold">
-            FirstName, Email, Organization, Achievement, Role
-          </span>
+          Required columns: <span className="font-semibold">Name, Email</span>
+          <br />
+          <span className="text-indigo-400">Optional: Description</span>
         </p>
       </div>
       {/* Error Message Display */}
@@ -185,7 +185,7 @@ const CSVParser = ({ onDataConfirm }) => {
             <div className="flex gap-2">
               <button
                 onClick={handleRemoveData}
-                title="Remove Data"
+                title="Remove All Data"
                 className="p-2 rounded-full text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
               >
                 <X size={20} />
@@ -202,21 +202,16 @@ const CSVParser = ({ onDataConfirm }) => {
           <table className="min-w-full divide-y divide-indigo-800">
             <thead className="bg-indigo-800 text-indigo-100">
               <tr>
-                {[
-                  "FirstName",
-                  "Email",
-                  "Organization",
-                  "Achievement",
-                  "Role",
-                ].map((header) => (
-                  <th
-                    key={header}
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                  >
-                    {header.replace(/([A-Z])/g, " $1").trim()}
-                  </th>
-                ))}
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                  Description
+                </th>
+                <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody className="bg-indigo-950 divide-y divide-indigo-900">
@@ -226,19 +221,24 @@ const CSVParser = ({ onDataConfirm }) => {
                   className="hover:bg-indigo-900/80 transition-colors duration-150"
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
-                    {row.FirstName}
+                    {row.Name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
                     {row.Email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
-                    {row.Organization}
+                    {row.Description || (
+                      <span className="italic text-indigo-400">(none)</span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
-                    {row.Achievement}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-100">
-                    {row.Role}
+                  <td className="px-2 py-4 text-center">
+                    <button
+                      onClick={() => handleRemoveRecipient(index)}
+                      title="Remove this recipient"
+                      className="p-1.5 rounded-full text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
+                    >
+                      <X size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -246,6 +246,7 @@ const CSVParser = ({ onDataConfirm }) => {
           </table>
         </div>
       )}
+      <div ref={bottomRef} />
     </div>
   );
 };

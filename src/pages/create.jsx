@@ -3,7 +3,7 @@ import CSVParser from "../components/CSVparser";
 import EmailEditor from "../components/EmailEditor";
 import SendMails from "../components/SendMails";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { ChevronLeft, Sparkles } from "lucide-react";
 
 const Hero = () => {
   return (
@@ -13,6 +13,15 @@ const Hero = () => {
       transition={{ duration: 0.7 }}
       className="relative isolate px-6 lg:px-8"
     >
+      {/* Back to Dashboard Button */}
+      <div className="absolute left-0 top-6">
+        <a
+          href="/dashboard"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900/80 border border-indigo-700 text-indigo-200 hover:bg-indigo-950 hover:text-indigo-100 font-semibold shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <ChevronLeft />
+        </a>
+      </div>
       <div className="mx-auto w-full py-24 sm:py-36 lg:py-32">
         <div className="text-center">
           <motion.h1
@@ -114,7 +123,7 @@ const MailingLayout = () => {
         <Hero />
         <motion.div
           id="csv-parser"
-          className="my-12 bg-indigo-950/80 rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto border border-indigo-800"
+          className="my-12 bg-indigo-950/80 rounded-2xl shadow-xl w-full max-w-5xl mx-auto border border-indigo-800"
           initial={{ scale: 0.97, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
@@ -122,7 +131,7 @@ const MailingLayout = () => {
           <CSVParser onDataConfirm={handleDataConfirm} />
         </motion.div>
         <motion.div
-          className="email-editor my-12 bg-indigo-950/80 rounded-2xl shadow-xl p-8 w-full max-w-5xl mx-auto border border-indigo-800"
+          className="email-editor my-12 bg-indigo-950/80 rounded-2xl shadow-xl w-full max-w-5xl mx-auto border border-indigo-800"
           initial={{ scale: 0.97, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}

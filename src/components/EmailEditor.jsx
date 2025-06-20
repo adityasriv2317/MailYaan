@@ -15,6 +15,7 @@ const EmailEditor = ({
   const [aiLoading, setAILoading] = useState(false);
   const [personalizedEmails, setPersonalizedEmails] = useState({});
   const [currentEditorText, setCurrentEditorText] = useState(content);
+  const [subject, setSubject] = useState("");
 
   // Update selected index if recipients list changes
   useEffect(() => {
@@ -32,6 +33,11 @@ const EmailEditor = ({
     // If the editor was showing personalized text, reset it to the new base template
     setCurrentEditorText(content);
   }, [content]); // Only depends on content
+
+  // Update subject if initialContent changes (optional, for reset)
+  useEffect(() => {
+    setSubject("");
+  }, [initialContent]);
 
   useEffect(() => {
     const currentBaseContent = String(content || "");
@@ -102,44 +108,24 @@ const EmailEditor = ({
 
   // Your existing generatePrompt function
   const generatePrompt = () => {
-    let prompt = `Given the following list of individuals, each with their name, organization, recent achievement, and role:\n\n`;
-
+    let prompt = `Given the following list of individuals, each with their name and email:\n\n`;
     recipients.forEach((recipient) => {
-      prompt += `Name: ${recipient.FirstName || "N/A"}\n`;
-      prompt += `Organization: ${recipient.Organization || "N/A"}\n`;
-      prompt += `Recent Achievement: ${recipient.Achievement || "N/A"}\n`;
-      prompt += `Role: ${recipient.Role || "N/A"}\n\n`;
+      prompt += `Name: ${recipient.Name || "N/A"}\n`;
+      prompt += `Email: ${recipient.Email || "N/A"}\n`;
+      if (recipient.Description)
+        prompt += `Description: ${recipient.Description}\n`;
+      prompt += `\n`;
     });
-
-    prompt += `For each person listed above, please generate a personalized email for an invitation to VBDA 2025. The email should be engaging and relevant to their achievement and role.\n`;
+    if (subject && subject.trim() !== "") {
+      prompt += `\nUse the following subject for all emails (if appropriate): ${subject}\n`;
+    }
+    prompt += `For each person listed above, please generate a personalized email.\n`;
     prompt += `Respond ONLY with a valid JSON array. Each object in the array should correspond to a person in the order provided and contain the following keys:\n`;
     prompt += `- "Name": The person's name.\n`;
     prompt += `- "Email Subject": A concise and personalized subject line for the email.\n`;
     prompt += `- "Email Body": The full personalized body of the email (use HTML for basic formatting like paragraphs <p> and bold <b> if appropriate).\n\n`;
-    prompt += `Example JSON object structure: {"Name": "Jane Doe", "Email Subject": "Invitation to VBDA 2025 for Innovators like You!", "Email Body": "<p>Dear Jane,...</p>"}\n`;
-    prompt += `Please provide answer in following structure, without any introductory text, code fences, or explanations.
-    
-    [
-  {
-    "Name": "Ananya",
-    "Organization": "TechSpark",
-    "Recent Achievement": "Raised $50M Series B for AI-powered healthcare",
-    "Role": "CEO",
-    "Hook": "Personalized hook message for email",
-    "Email Content": "Complete email content with formatting markers"
-  },
-  {
-    "Name": "Rahul",
-    "Organization": "InnovateX",
-    "Recent Achievement": "Developed a new blockchain protocol",
-    "Role": "CTO",
-    "Hook": "Personalized hook message for email",
-    "Email Content": "Complete email content with formatting markers"
-  },
-  // Additional objects
-]
-
-    `;
+    prompt += `Example JSON object structure: {"Name": "Jane Doe", "Email Subject": "Welcome!", "Email Body": "<p>Dear Jane,...</p>"}\n`;
+    prompt += `Please provide answer in following structure, without any introductory text, code fences, or explanations.\n\n[ ... ]\n`;
 
     return prompt;
   };
@@ -178,8 +164,9 @@ const EmailEditor = ({
     setPersonalizedEmails({}); // Clear previous results
 
     try {
-      const key = import.meta.env.VITE_apI_KEY;
-      const api = import.meta.env.VITE_genApi;
+      const key = process.env.NEXT_PUBLIC_API_KEY;
+      const api = process.env.NEXT_PUBLIC_GEMINI;
+
       const prompt = generatePrompt();
 
       const requestData = {
@@ -240,11 +227,11 @@ const EmailEditor = ({
               );
               onPersonalizedEmails(emailsArray);
             }
-            alert(
-              `Generated personalized content for ${
-                Object.keys(newPersonalizedEmails).length
-              } recipients. Check the preview.`
-            );
+            // alert(
+            //   `Generated personalized content for ${
+            //     Object.keys(newPersonalizedEmails).length
+            //   } recipients. Check the preview.`
+            // );
           } else {
             console.error(
               "No valid personalized emails could be extracted from the response."
@@ -293,26 +280,34 @@ const EmailEditor = ({
       </h2>
       {/* AI Button and Hint */}
       <div className="w-full text-center relative mb-4">
-        <button
-          className={`absolute top-0 right-0 bg-gradient-to-r from-indigo-700 to-blue-700 hover:from-indigo-800 hover:to-blue-800 text-white font-bold py-2 px-4 rounded-full shadow transition-opacity duration-200 ${
-            recipients.length === 0 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          onClick={handleEmailGenerate}
-          disabled={aiLoading || recipients.length === 0}
-          title={
-            recipients.length === 0
-              ? "Upload recipients to enable AI generation"
-              : "Generate AI Content for All Recipients"
-          }
-        >
-          <Brain className={`${aiLoading ? "animate-spin" : ""} w-5 h-5`} />
-        </button>
+        {/* Subject input and AI button grouped */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-3 w-full max-w-md mx-auto">
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Enter a subject for all emails..."
+            className="flex-1 px-4 py-2 rounded-lg border border-indigo-700 bg-indigo-900 text-indigo-100 placeholder:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            className={`bg-gradient-to-r from-indigo-700 to-blue-700 hover:from-indigo-800 hover:to-blue-800 text-white font-bold py-4 px-4 rounded-full shadow transition-opacity duration-200 ${
+              recipients.length === 0 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={handleEmailGenerate}
+            disabled={aiLoading || recipients.length === 0}
+            title={
+              recipients.length === 0
+                ? "Upload recipients to enable AI generation"
+                : "Generate AI Content for All Recipients"
+            }
+          >
+            <Brain className={`${aiLoading ? "animate-spin" : ""} w-5 h-5`} />
+          </button>
+        </div>
         <p className="text-xs text-indigo-300">
           Use placeholders like{" "}
-          <span className="font-semibold">
-            FirstName, Email, Organization, Achievement, Role
-          </span>{" "}
-          in your email template below.
+          <span className="font-semibold">Name, Email, Description</span> in
+          your email template below.
         </p>
         <p className="mt-1 mb-2 text-xs text-indigo-400">
           Click the <Brain size={12} className="inline -mt-1" /> button to
@@ -324,7 +319,7 @@ const EmailEditor = ({
         <textarea
           value={currentEditorText}
           onChange={handleEditorChange}
-          className="w-full min-h-80 p-4 border-none focus:ring-0 focus:outline-none resize-none text-base font-mono bg-indigo-950 text-indigo-100 placeholder:text-indigo-400"
+          className="w-full min-h-80 p-4 border-none focus:ring-0 focus:outline-none resize-none text-base font-mono bg-indigo-100 rounded-md text-indigo-900 placeholder:text-indigo-400"
           placeholder="Enter your base email template here. Use HTML tags for formatting..."
         />
       </div>
