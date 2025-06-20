@@ -8,8 +8,10 @@ import {
   Mail as MailIcon,
   Lock,
   UserPlus,
+  Loader2,
 } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
+import axios from "axios";
 
 export default function Signup() {
   const router = useRouter();
@@ -28,6 +30,7 @@ export default function Signup() {
   const [gender, setGender] = useState("");
   const [nameError, setNameError] = useState("");
   const [genderError, setGenderError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -40,7 +43,7 @@ export default function Signup() {
     );
   }
 
-  function handleSignup(e) {
+  async function handleSignup(e) {
     e.preventDefault();
     let valid = true;
     setNameError("");
@@ -78,9 +81,31 @@ export default function Signup() {
       valid = false;
     }
     if (!valid) return;
-    // Simulate signup
-    localStorage.setItem("mailyaan-auth", "true");
-    router.push("/dashboard");
+    setLoading(true);
+    try {
+      // Use the correct Next.js API route for signup
+      const res = await axios.post("/api/auth/signup", {
+        name,
+        gender,
+        email,
+        password,
+        recaptchaToken: recaptchaValue,
+      });
+      if (res.status !== 201) {
+        setError(res.data.message || "Signup failed.");
+        setLoading(false);
+        return;
+      }
+      // Success
+      localStorage.setItem("mailyaan-auth", "true");
+      router.push("/dashboard");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Server error. Please try again later."
+      );
+      setLoading(false);
+    }
+    setLoading(false);
   }
 
   return (
@@ -99,6 +124,8 @@ export default function Signup() {
       </button>
       <motion.form
         onSubmit={handleSignup}
+        action="/api/auth/signup"
+        method="POST"
         className="w-full max-w-sm bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800/90 backdrop-blur-md rounded-xl shadow-xl border border-indigo-900 p-4 sm:p-6 flex flex-col gap-4 relative"
         initial={{ scale: 0.97, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -353,10 +380,12 @@ export default function Signup() {
         </div>
         <motion.button
           type="submit"
-          className="bg-gradient-to-r from-indigo-700 to-blue-700 text-white py-3 rounded-lg font-bold shadow-lg hover:from-indigo-800 hover:to-blue-800 transition text-lg mt-2"
+          className="bg-gradient-to-r from-indigo-700 to-blue-700 text-white py-3 rounded-lg font-bold shadow-lg hover:from-indigo-800 hover:to-blue-800 transition text-lg mt-2 flex items-center justify-center gap-2"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
+          disabled={loading}
         >
+          {loading ? <Loader2 className="animate-spin w-5 h-5" /> : null}
           Sign Up
         </motion.button>
         <motion.p

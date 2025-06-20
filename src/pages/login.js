@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Eye, EyeOff, Mail as MailIcon, Lock } from "lucide-react";
+import axios from "axios";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Loader2 } from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
@@ -11,12 +14,14 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [recaptchaValue, setRecaptchaValue] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
     setEmailError("");
     setPasswordError("");
@@ -30,10 +35,34 @@ export default function Login() {
       setPasswordError("Please enter your password.");
       valid = false;
     }
+    if (!recaptchaValue) {
+      setError("Please verify that you are not a robot.");
+      return;
+    }
     if (!valid) return;
-    // Simulate login
-    localStorage.setItem("mailyaan-auth", "true");
-    router.push("/dashboard");
+    setLoading(true);
+    try {
+      const res = await axios.post("/login", {
+        email,
+        password,
+        recaptchaToken: recaptchaValue,
+      });
+      if (res.status !== 200) {
+        setError(res.data.message || "Login failed.");
+        setLoading(false);
+        return;
+      }
+      // Success
+      localStorage.setItem("mailyaan-auth", "true");
+      router.push("/dashboard");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Server error. Please try again later."
+      );
+      console.error("Login error:", err);
+      setLoading(false);
+    }
+    setLoading(false);
   }
 
   return (
@@ -52,6 +81,8 @@ export default function Login() {
       </button>
       <motion.form
         onSubmit={handleLogin}
+        action="/api/auth/login"
+        method="POST"
         className="w-full max-w-md bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl border border-indigo-900 p-6 sm:p-10 flex flex-col gap-6 relative"
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -162,12 +193,24 @@ export default function Login() {
             </AnimatePresence>
           </div>
         </div>
+        <div className="flex flex-col gap-2 items-center mt-2">
+          <ReCAPTCHA
+            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+            theme="dark"
+            onChange={(value) => {
+              setRecaptchaValue(value);
+              setError("");
+            }}
+          />
+        </div>
         <motion.button
           type="submit"
-          className="bg-gradient-to-r from-indigo-700 to-blue-700 text-white py-3 rounded-lg font-bold shadow-lg hover:from-indigo-800 hover:to-blue-800 transition text-lg mt-2"
+          className="bg-gradient-to-r from-indigo-700 to-blue-700 text-white py-3 rounded-lg font-bold shadow-lg hover:from-indigo-800 hover:to-blue-800 transition text-lg mt-2 flex items-center justify-center gap-2"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
+          disabled={loading}
         >
+          {loading ? <Loader2 className="animate-spin w-5 h-5" /> : null}
           Login
         </motion.button>
         <motion.p
