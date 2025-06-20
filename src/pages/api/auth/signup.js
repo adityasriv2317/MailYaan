@@ -2,6 +2,7 @@ import dbConnect from '../../../server/dbConnect';
 import User from '../../../server/userModel';
 import bcrypt from 'bcryptjs';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
 
 async function verifyRecaptcha(token) {
   const secret = process.env.RECAPTCHA_SECRET_KEY;
@@ -39,5 +40,23 @@ export default async function handler(req, res) {
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({ name, gender, email, password: hashedPassword });
   await user.save();
-  return res.status(201).json({ message: 'Signup successful.' });
+
+  // JWT token generation
+  const accessToken = jwt.sign(
+    { id: user._id, email: user.email, name: user.name },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+  const refreshToken = jwt.sign(
+    { id: user._id, email: user.email, name: user.name },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  return res.status(201).json({
+    message: 'Signup successful.',
+    user: { name: user.name, gender: user.gender, email: user.email },
+    accessToken,
+    refreshToken
+  });
 }

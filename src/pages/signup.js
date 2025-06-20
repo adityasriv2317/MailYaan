@@ -98,6 +98,9 @@ export default function Signup() {
       }
       // Success
       localStorage.setItem("mailyaan-auth", "true");
+      localStorage.setItem("mailyaan-user", JSON.stringify(res.data.user));
+      localStorage.setItem("mailyaan-access-token", res.data.accessToken);
+      localStorage.setItem("mailyaan-refresh-token", res.data.refreshToken);
       router.push("/dashboard");
     } catch (err) {
       setError(

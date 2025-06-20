@@ -42,7 +42,7 @@ export default function Login() {
     if (!valid) return;
     setLoading(true);
     try {
-      const res = await axios.post("/login", {
+      const res = await axios.post("/api/auth/login", {
         email,
         password,
         recaptchaToken: recaptchaValue,
@@ -54,6 +54,9 @@ export default function Login() {
       }
       // Success
       localStorage.setItem("mailyaan-auth", "true");
+      localStorage.setItem("mailyaan-user", JSON.stringify(res.data.user));
+      localStorage.setItem("mailyaan-access-token", res.data.accessToken);
+      localStorage.setItem("mailyaan-refresh-token", res.data.refreshToken);
       router.push("/dashboard");
     } catch (err) {
       setError(
