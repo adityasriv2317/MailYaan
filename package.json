@@ -9,14 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.12.2",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cron": "^4.3.1",
     "framer-motion": "^12.18.1",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.518.0",
     "mongoose": "^8.16.0",
     "next": "15.3.4",
+    "next-auth": "^4.24.11",
     "node-cron": "^4.1.1",
     "nodemailer": "^7.0.3",
     "papaparse": "^5.5.3",
