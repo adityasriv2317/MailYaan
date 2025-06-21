@@ -99,6 +99,7 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
                 type="datetime-local"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
                 className="border border-indigo-700 bg-zinc-900 text-indigo-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner"
               />
             </label>
