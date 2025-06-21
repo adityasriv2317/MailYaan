@@ -29,9 +29,6 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
           return;
         }
 
-        // console.log("Sending emails with scheduled time:", scheduledTime);
-        console.log("Emails to send:", emails);
-        console.log("User email:", userMail);
         const response = await axios.post(
           "/api/send",
           {
@@ -52,7 +49,7 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
       } catch (error) {
         if (error.response && error.response.status === 401) {
           alert("Session expired or unauthorized. Please log in again.");
-          window.location.href = "/login";
+          window.location.href = "/auth";
         } else {
           alert("Error sending emails");
           console.error(error);

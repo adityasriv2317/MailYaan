@@ -12,9 +12,19 @@ export default function Signup() {
 
   async function signupWithGoogle(googleToken) {
     try {
-      const res = await axios.post("/api/signup", { googleToken });
+      const res = await axios.post(
+        "/api/signup",
+        { googleToken },
+        {
+          withCredentials: true,
+        }
+      );
       // Store token and user info in localStorage for session
       if (res.data && res.data.success) {
+        // Store backend JWT for API auth
+        if (res.data.token) {
+          localStorage.setItem("mailyaan-access-token", res.data.token);
+        }
         localStorage.setItem("mailyaan-auth", googleToken);
         // Optionally, fetch user profile from backend or decode from token
         // Here, decode the token to get user info (name, email, etc.)

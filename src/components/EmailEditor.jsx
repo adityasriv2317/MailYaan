@@ -112,6 +112,10 @@ const EmailEditor = ({
 
   // Your existing generatePrompt function
   const generatePrompt = () => {
+    const sender = localStorage.getItem("mailyaan-user-name");
+    const senderName =
+      JSON.parse(sender)?.given_name || "Generated via MailYaan";
+
     let prompt = `Given the following list of individuals, each with their name and email:\n\n`;
     recipients.forEach((recipient) => {
       prompt += `Name: ${recipient.Name || "N/A"}\n`;
@@ -128,6 +132,7 @@ const EmailEditor = ({
     prompt += `- "Name": The person's name.\n`;
     prompt += `- "Email Subject": A concise and personalized subject line for the email.\n`;
     prompt += `- "Email Body": The full personalized body of the email (use HTML for basic formatting like paragraphs <p> and bold <b> if appropriate).\n\n`;
+    prompt += `also The email should be written in a friendly and professional tone, and add the following sender's name in the end ${senderName}.\n`;
     prompt += `Example JSON object structure: {"Name": "Jane Doe", "Email Subject": "Welcome!", "Email Body": "<p>Dear Jane,...</p>"}\n`;
     prompt += `Please provide answer in following structure, without any introductory text, code fences, or explanations.\n\n[ ... ]\n`;
 

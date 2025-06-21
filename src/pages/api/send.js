@@ -3,6 +3,7 @@ import { getTokenForUser } from "../../utils/getTokenForUser";
 import ScheduledEmail from "../../utils/scheduledEmail";
 import dbConnect from "../../utils/dbConnect";
 import jwt from "jsonwebtoken";
+import { emailQueue } from "../../utils/bullmq";
 
 // Helper to send emails (extracted from main handler for reuse)
 async function sendEmails({ emails, userMail }) {
@@ -92,8 +93,6 @@ export default async function handler(req, res) {
     if (!scheduledTime) {
       return res.status(400).json({ error: "No scheduled time provided" });
     }
-
-    await dbConnect();
     const scheduledDate = new Date(scheduledTime);
     if (isNaN(scheduledDate.getTime())) {
       return res.status(400).json({ error: "Invalid scheduled time" });
@@ -104,17 +103,15 @@ export default async function handler(req, res) {
       const results = await sendEmails({ emails, userMail });
       return res.status(200).json({ success: true, results });
     }
-
-    // Save job to MongoDB for later processing
-    const job = await ScheduledEmail.create({
-      userMail,
-      emails,
-      scheduledTime: scheduledDate,
-      status: "pending",
-    });
+    // Schedule with BullMQ
+    const job = await emailQueue.add(
+      "sendEmail",
+      { emails, userMail },
+      { delay: scheduledDate.getTime() - now.getTime() }
+    );
     return res
       .status(200)
-      .json({ success: true, scheduled: true, jobId: job._id });
+      .json({ success: true, scheduled: true, jobId: job.id });
   } catch (error) {
     console.error("Send API error:", error);
     return res.status(500).json({ error: "Internal server error" });
