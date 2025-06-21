@@ -37,7 +37,7 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-bl from-gray-900 via-indigo-900 to-gray-800 relative">
         {/* Go Back Button */}
         <button
-          className="absolute top-6 left-6 flex items-center gap-2 bg-indigo-200/50 py-2 px-1 rounded-lg hover:bg-indigo-500 hover:rounded-2xl transition-all pr-2 :text-indigo-400"
+          className="absolute top-6 left-6 flex items-center gap-2 bg-indigo-200/50 py-2 px-1 rounded-lg hover:bg-indigo-500 hover:rounded-2xl transition-all pr-2 hover:text-gray-50"
           onClick={() => router.back()}
         >
           <ChevronLeft />

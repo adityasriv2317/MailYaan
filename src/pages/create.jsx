@@ -4,8 +4,11 @@ import EmailEditor from "../components/EmailEditor";
 import SendMails from "../components/SendMails";
 import { motion } from "framer-motion";
 import { ChevronLeft, Sparkles } from "lucide-react";
+import { useRouter } from "next/router";
 
 const Hero = () => {
+  const router = useRouter();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -14,15 +17,14 @@ const Hero = () => {
       className="relative isolate px-6 lg:px-8"
     >
       {/* Back to Dashboard Button */}
-      <div className="absolute left-0 top-6">
-        <a
-          href="/dashboard"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900/80 border border-indigo-700 text-indigo-200 hover:bg-indigo-950 hover:text-indigo-100 font-semibold shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        >
-          <ChevronLeft />
-        </a>
-      </div>
-      <div className="mx-auto w-full py-24 sm:py-36 lg:py-32">
+      <button
+        className="absolute top-6 left-6 flex items-center gap-2 bg-indigo-200/50 py-2 px-1 rounded-lg hover:bg-indigo-500 hover:rounded-2xl transition-all pr-2 hover:text-gray-50"
+        onClick={() => router.back()}
+      >
+        <ChevronLeft />
+        Go Back
+      </button>
+      <div className="mx-auto w-full select-none py-24 sm:py-36 lg:py-32">
         <div className="text-center">
           <motion.h1
             className="text-3xl sm:text-6xl font-extrabold tracking-tight text-indigo-100 flex items-center justify-center gap-3 mb-4"

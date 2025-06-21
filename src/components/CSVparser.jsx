@@ -14,14 +14,13 @@ const CSVParser = ({ onDataConfirm }) => {
     const file = event.target.files[0];
 
     if (file) {
-      setFileName(file.name); // Set the file name
-      setError(""); // Clear previous errors
-      setParsedData([]); // Clear previous data
-      // setIsConfirmed(false); // Reset confirmation status on new file upload
+      setFileName(file.name);
+      setError("");
+      setParsedData([]);
 
       Papa.parse(file, {
         header: true,
-        skipEmptyLines: true, // Skip empty lines
+        skipEmptyLines: true,
         complete: (results) => {
           // Require Name and Email, Description is optional
           const requiredColumns = ["Name", "Email"];
@@ -108,9 +107,9 @@ const CSVParser = ({ onDataConfirm }) => {
     setError("");
     // setIsConfirmed(false);
     if (onDataConfirm) {
-      onDataConfirm([]); // Pass empty array up to clear recipients in parent
+      onDataConfirm([]);
     }
-    // Reset the file input visually
+
     const fileInput = document.getElementById("csv-upload");
     if (fileInput) {
       fileInput.value = "";
@@ -129,7 +128,7 @@ const CSVParser = ({ onDataConfirm }) => {
   return (
     <div
       id="csv-parser"
-      className="csv-parser container mx-auto px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800"
+      className="csv-parser container mx-auto select-none px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800"
     >
       <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-100 text-center mb-6 flex items-center justify-center gap-2">
         <UploadCloud className="w-7 h-7 text-indigo-400 animate-bounce" />
