@@ -8,20 +8,19 @@ const CSVParser = ({ onDataConfirm }) => {
   const [parsedData, setParsedData] = useState([]);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
-  const bottomRef = useRef(null); // Ref for the bottom of the component
+  const bottomRef = useRef(null);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
 
     if (file) {
-      setFileName(file.name); // Set the file name
-      setError(""); // Clear previous errors
-      setParsedData([]); // Clear previous data
-      // setIsConfirmed(false); // Reset confirmation status on new file upload
+      setFileName(file.name);
+      setError("");
+      setParsedData([]);
 
       Papa.parse(file, {
         header: true,
-        skipEmptyLines: true, // Skip empty lines
+        skipEmptyLines: true,
         complete: (results) => {
           // Require Name and Email, Description is optional
           const requiredColumns = ["Name", "Email"];
@@ -81,9 +80,14 @@ const CSVParser = ({ onDataConfirm }) => {
       setFileName(""); // Clear filename if no file is selected
       setParsedData([]);
       setError("");
-      // setIsConfirmed(false);
-      // Call onDataConfirm with empty array if file selection is cleared
       if (onDataConfirm) onDataConfirm([]);
+    }
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -92,25 +96,16 @@ const CSVParser = ({ onDataConfirm }) => {
     if (onDataConfirm) {
       onDataConfirm(parsedData); // Pass the data up to the parent
     }
-    // Scroll to bottom when tick is clicked
-    setTimeout(() => {
-      if (bottomRef.current) {
-        bottomRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100); // Delay to ensure any parent updates
   };
 
   // Call onDataConfirm with empty array when data is removed
   const handleRemoveData = () => {
-    // console.log("Data removed");
     setParsedData([]);
     setFileName("");
     setError("");
-    // setIsConfirmed(false);
     if (onDataConfirm) {
-      onDataConfirm([]); // Pass empty array up to clear recipients in parent
+      onDataConfirm([]);
     }
-    // Reset the file input visually
     const fileInput = document.getElementById("csv-upload");
     if (fileInput) {
       fileInput.value = "";
@@ -129,7 +124,7 @@ const CSVParser = ({ onDataConfirm }) => {
   return (
     <div
       id="csv-parser"
-      className="csv-parser container mx-auto px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800"
+      className="csv-parser container mx-auto select-none px-4 py-10 bg-indigo-950/80 rounded-2xl shadow-xl border border-indigo-800"
     >
       <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-100 text-center mb-6 flex items-center justify-center gap-2">
         <UploadCloud className="w-7 h-7 text-indigo-400 animate-bounce" />
@@ -185,15 +180,18 @@ const CSVParser = ({ onDataConfirm }) => {
             <div className="flex gap-2">
               <button
                 onClick={handleRemoveData}
-                title="Remove All Data"
-                className="p-2 rounded-full text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
+                title="Clear Data"
+                className="p-2 rounded-full cursor-pointer text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
               >
                 <X size={20} />
               </button>
               <button
-                onClick={handleConfirmData}
+                onClick={() => {
+                  handleConfirmData();
+                  if (parsedData.length > 0) scrollToBottom();
+                }}
                 title="Confirm Data"
-                className="p-2 rounded-full text-green-400 bg-green-900/60 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors duration-200"
+                className="p-2 rounded-full text-green-400 cursor-pointer bg-green-900/60 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors duration-200"
               >
                 <Check size={20} />
               </button>
