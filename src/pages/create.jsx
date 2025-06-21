@@ -125,7 +125,7 @@ const MailingLayout = () => {
         <Hero />
         <motion.div
           id="csv-parser"
-          className="my-12 bg-indigo-950/80 rounded-2xl shadow-xl w-full max-w-5xl mx-auto border border-indigo-800"
+          className="my-4 bg-indigo-950/80 rounded-2xl shadow-xl w-full max-w-5xl mx-auto border border-indigo-800"
           initial={{ scale: 0.97, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}

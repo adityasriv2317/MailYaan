@@ -8,7 +8,7 @@ const CSVParser = ({ onDataConfirm }) => {
   const [parsedData, setParsedData] = useState([]);
   const [error, setError] = useState("");
   const [fileName, setFileName] = useState("");
-  const bottomRef = useRef(null); // Ref for the bottom of the component
+  const bottomRef = useRef(null);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -80,9 +80,14 @@ const CSVParser = ({ onDataConfirm }) => {
       setFileName(""); // Clear filename if no file is selected
       setParsedData([]);
       setError("");
-      // setIsConfirmed(false);
-      // Call onDataConfirm with empty array if file selection is cleared
       if (onDataConfirm) onDataConfirm([]);
+    }
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -91,25 +96,16 @@ const CSVParser = ({ onDataConfirm }) => {
     if (onDataConfirm) {
       onDataConfirm(parsedData); // Pass the data up to the parent
     }
-    // Scroll to bottom when tick is clicked
-    setTimeout(() => {
-      if (bottomRef.current) {
-        bottomRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100); // Delay to ensure any parent updates
   };
 
   // Call onDataConfirm with empty array when data is removed
   const handleRemoveData = () => {
-    // console.log("Data removed");
     setParsedData([]);
     setFileName("");
     setError("");
-    // setIsConfirmed(false);
     if (onDataConfirm) {
       onDataConfirm([]);
     }
-
     const fileInput = document.getElementById("csv-upload");
     if (fileInput) {
       fileInput.value = "";
@@ -184,15 +180,18 @@ const CSVParser = ({ onDataConfirm }) => {
             <div className="flex gap-2">
               <button
                 onClick={handleRemoveData}
-                title="Remove All Data"
-                className="p-2 rounded-full text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
+                title="Clear Data"
+                className="p-2 rounded-full cursor-pointer text-red-400 bg-red-900/60 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 transition-colors duration-200"
               >
                 <X size={20} />
               </button>
               <button
-                onClick={handleConfirmData}
+                onClick={() => {
+                  handleConfirmData();
+                  if (parsedData.length > 0) scrollToBottom();
+                }}
                 title="Confirm Data"
-                className="p-2 rounded-full text-green-400 bg-green-900/60 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors duration-200"
+                className="p-2 rounded-full text-green-400 cursor-pointer bg-green-900/60 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition-colors duration-200"
               >
                 <Check size={20} />
               </button>

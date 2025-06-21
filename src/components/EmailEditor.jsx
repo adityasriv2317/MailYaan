@@ -56,6 +56,10 @@ const EmailEditor = ({
         // Format the preview with subject and body (HTML)
         processedPreviewContent = `<h3>Subject: ${subject}</h3><hr/>${body}`;
         editorTextToShow = `Subject: ${subject}\n\n${body}`;
+        // Also update the subject field if not already set
+        if (subject && subject !== "" && subject !== subject) {
+          setSubject(subject);
+        }
       } else if (selectedRecipient) {
         try {
           processedPreviewContent = currentBaseContent.replace(
@@ -181,15 +185,12 @@ const EmailEditor = ({
         const responseText =
           response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-        //  console.log("Raw AI Response Text:", responseText); // Log the raw response text
-
         // Use the extract function to clean and parse the JSON
         const responseObject = extract(responseText);
 
-        //  console.log("Parsed Response Object:", responseObject); // Log the parsed object
-
         if (responseObject && Array.isArray(responseObject)) {
           const newPersonalizedEmails = {};
+          let firstSubject = null;
           responseObject.forEach((item, index) => {
             // Check if the item has the required fields and matches recipient index
             if (
@@ -202,6 +203,10 @@ const EmailEditor = ({
                 subject: item["Email Subject"],
                 body: item["Email Body"],
               };
+              // Set the subject field to the first subject if not already set
+              if (firstSubject === null) {
+                firstSubject = item["Email Subject"];
+              }
             } else {
               console.warn(
                 `Mismatch, missing data, or invalid item structure for index ${index}:`,
@@ -211,6 +216,11 @@ const EmailEditor = ({
               // newPersonalizedEmails[index] = { subject: 'Default Subject', body: '<p>Default Body</p>' };
             }
           });
+
+          // Set the subject input to the first generated subject if available
+          if (firstSubject && firstSubject !== subject) {
+            setSubject(firstSubject);
+          }
 
           // Check if any emails were successfully generated
           if (Object.keys(newPersonalizedEmails).length > 0) {
@@ -227,11 +237,6 @@ const EmailEditor = ({
               );
               onPersonalizedEmails(emailsArray);
             }
-            // alert(
-            //   `Generated personalized content for ${
-            //     Object.keys(newPersonalizedEmails).length
-            //   } recipients. Check the preview.`
-            // );
           } else {
             console.error(
               "No valid personalized emails could be extracted from the response."
