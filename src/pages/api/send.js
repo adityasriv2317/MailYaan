@@ -7,8 +7,14 @@ import { emailQueue } from "../../utils/bullmq";
 
 // Helper to send emails (extracted from main handler for reuse)
 async function sendEmails({ emails, userMail }) {
+  console.log(
+    `[sendEmails] Called for user: ${userMail}, emails count: ${emails?.length}`
+  );
   const token = await getTokenForUser(userMail);
-  if (!token) throw new Error("No Gmail token found for user");
+  if (!token) {
+    console.error(`[sendEmails] No Gmail token found for user: ${userMail}`);
+    throw new Error("No Gmail token found for user");
+  }
   const oAuth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -22,8 +28,12 @@ async function sendEmails({ emails, userMail }) {
     const to = mail.recipient?.Email;
     const subject = mail.subject;
     const body = mail.body;
+    console.log(
+      `[sendEmails] Preparing to send to: ${to}, subject: ${subject}`
+    );
     if (!to || !subject || !body) {
       sendResults.push({ to, status: "skipped", reason: "Missing fields" });
+      console.warn(`[sendEmails] Skipped email to: ${to} (missing fields)`);
       continue;
     }
     const messageParts = [
@@ -41,16 +51,16 @@ async function sendEmails({ emails, userMail }) {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     try {
-      console.log(`Sending to ${to}`);
       await gmail.users.messages.send({
         userId: "me",
         requestBody: { raw: rawMessage },
       });
       sendResults.push({ to, status: "sent" });
+      console.log(`[sendEmails] Sent email to: ${to}`);
     } catch (err) {
       sendResults.push({ to, status: "error", reason: err.message });
-    }
-    finally{
+      console.error(`[sendEmails] Error sending to: ${to} - ${err.message}`);
+    } finally {
       console.log(`job finished at time: ${new Date().toISOString()}`);
     }
   }
@@ -105,7 +115,8 @@ export default async function handler(req, res) {
     // Always use IST for scheduling
     // Convert UTC ISO string to IST Date
     const istOffset = 5.5 * 60; // in minutes
-    const utc = scheduledDate.getTime() + (scheduledDate.getTimezoneOffset() * 60000);
+    const utc =
+      scheduledDate.getTime() + scheduledDate.getTimezoneOffset() * 60000;
     const istDate = new Date(utc + istOffset * 60000);
     const now = new Date();
     const delay = istDate.getTime() - now.getTime();
@@ -120,7 +131,11 @@ export default async function handler(req, res) {
       { emails, userMail, scheduledTime: istDate.toISOString() },
       { delay }
     );
-    console.log(`Scheduled email job with ID ${job.id} for ${userMail} at ${istDate.toISOString()} IST`);
+    console.log(
+      `Scheduled email job with ID ${
+        job.id
+      } for ${userMail} at ${istDate.toISOString()} IST`
+    );
     return res
       .status(200)
       .json({ success: true, scheduled: true, jobId: job.id });

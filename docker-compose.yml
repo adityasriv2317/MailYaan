@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web:
@@ -14,3 +14,11 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+  worker:
+    build: .
+    environment:
+      - NODE_ENV=development
+    command: node ./worker.mjs
+    depends_on:
+      - redis

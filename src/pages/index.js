@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import GradientText from "@/ui/GradientText";
+import GradientText from "@/components/GradientText";
 import { useEffect } from "react";
 import { UserCircle } from "lucide-react";
 

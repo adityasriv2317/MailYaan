@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "concurrently \"next start\" \"cd helper && node worker.mjs\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -13,6 +13,7 @@
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "bullmq": "^5.55.0",
+    "concurrently": "^9.1.2",
     "framer-motion": "^12.18.1",
     "google-auth-library": "^10.1.0",
     "googleapis": "^150.0.1",
