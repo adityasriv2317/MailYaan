@@ -1,11 +1,24 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import { MailCheck, PlusCircle, LogOut, Sparkles, User2 } from "lucide-react";
+import {
+  MailCheck,
+  PlusCircle,
+  LogOut,
+  Sparkles,
+  User2,
+} from "lucide-react";
 
 export default function Dashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("");
+  const [userFullName, setUserFullName] = useState("");
+  const [userPic, setUserPic] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const panelRef = useRef();
 
   useEffect(() => {
     // Simple auth check
@@ -13,9 +26,8 @@ export default function Dashboard() {
       typeof window !== "undefined" &&
       !localStorage.getItem("mailyaan-auth")
     ) {
-      router.replace("/login");
+      router.replace("/auth");
     }
-    // Try to get user name from localStorage (or set a default)
     const user = localStorage.getItem("mailyaan-user");
     if (user) {
       try {
@@ -24,11 +36,20 @@ export default function Dashboard() {
         const fullName = parsed.name || "User";
         const firstName = fullName.split(" ")[0];
         setUserName(firstName);
+        setUserFullName(fullName);
+        setUserPic(parsed.picture || "");
+        setUserEmail(parsed.email || "");
       } catch {
         setUserName("User");
+        setUserFullName("");
+        setUserPic("");
+        setUserEmail("");
       }
     } else {
       setUserName("User");
+      setUserFullName("");
+      setUserPic("");
+      setUserEmail("");
     }
   }, [router]);
 
@@ -38,12 +59,23 @@ export default function Dashboard() {
     router.push("/");
   }
 
+  // Close panel on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        setPanelOpen(false);
+      }
+    }
+    if (panelOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [panelOpen]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950"
+      className="min-h-screen flex select-none flex-col bg-gradient-to-br from-indigo-950 via-indigo-900 to-blue-950"
     >
       <motion.header
         className="flex justify-between items-center px-6 py-5 shadow-md bg-indigo-900/80 backdrop-blur-md"
@@ -57,25 +89,23 @@ export default function Dashboard() {
             MailYaan
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          {/* Profile button */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-800/70 hover:bg-indigo-700/80 transition cursor-pointer select-none shadow border border-indigo-700">
-            <span className="bg-indigo-600 rounded-full p-1 flex items-center justify-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6 text-indigo-100"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"
-                />
-              </svg>
-            </span>
+        <div className="flex items-center gap-4 relative">
+          {/* User Panel Button */}
+          <div
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-800/70 hover:bg-indigo-700/80 transition cursor-pointer select-none shadow border border-indigo-700"
+            onClick={() => setPanelOpen((v) => !v)}
+          >
+            {userPic ? (
+              <img
+                src={userPic}
+                alt={userName}
+                className="w-8 h-8 rounded-full object-cover border-2 border-indigo-400"
+              />
+            ) : (
+              <span className="bg-indigo-600 rounded-full p-1 flex items-center justify-center">
+                <User2 className="w-6 h-6 text-indigo-100" />
+              </span>
+            )}
             <span
               className="text-indigo-100 font-medium text-base"
               id="dashboard-username"
@@ -83,12 +113,31 @@ export default function Dashboard() {
               {userName}
             </span>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-700 to-blue-700 text-white font-semibold shadow hover:from-indigo-800 hover:to-blue-800 transition"
-          >
-            <LogOut className="w-5 h-5" /> Logout
-          </button>
+          {/* User Panel Dropdown */}
+          {panelOpen && (
+            <div
+              ref={panelRef}
+              className="absolute right-0 top-14 z-50 bg-gray-900 border border-indigo-700 rounded-xl shadow-xl p-5 min-w-[220px] flex flex-col items-center animate-fade-in"
+            >
+              {userPic && (
+                <img
+                  src={userPic}
+                  alt={userName}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-indigo-400 mb-2"
+                />
+              )}
+              <div className="text-lg font-semibold text-indigo-100 mb-1">
+                {userFullName || userName}
+              </div>
+              <div className="text-indigo-300 text-sm mb-3">{userEmail}</div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-700 to-blue-700 text-white font-semibold shadow hover:from-indigo-800 hover:to-blue-800 transition mt-2"
+              >
+                <LogOut className="w-5 h-5" /> Logout
+              </button>
+            </div>
+          )}
         </div>
       </motion.header>
       <motion.main

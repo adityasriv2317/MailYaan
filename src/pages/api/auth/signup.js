@@ -1,62 +1,52 @@
-import dbConnect from '../../../server/dbConnect';
-import User from '../../../server/userModel';
-import bcrypt from 'bcryptjs';
-import axios from 'axios';
-import jwt from 'jsonwebtoken';
+import { MongoClient } from "mongodb";
+import { jwtVerify, createLocalJWKSet } from "jose";
 
-async function verifyRecaptcha(token) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) return false;
-  try {
-    const res = await axios.post(
-      'https://www.google.com/recaptcha/api/siteverify',
-      new URLSearchParams({ secret, response: token }).toString(),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    return res.data.success;
-  } catch {
-    return false;
-  }
-}
+const client = new MongoClient(process.env.MONGODB_URI);
+const dbName = process.env.MONGODB_DB || "mailyaan";
+const GOOGLE_ISSUERS = ["https://accounts.google.com", "accounts.google.com"];
 
 export default async function handler(req, res) {
-  await dbConnect();
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-  const { name, gender, email, password, recaptchaToken } = req.body;
-  if (!name || !gender || !email || !password || !recaptchaToken) {
-    return res.status(400).json({ message: 'All fields and reCAPTCHA are required.' });
-  }
-  const recaptchaValid = await verifyRecaptcha(recaptchaToken);
-  if (!recaptchaValid) {
-    return res.status(400).json({ message: 'reCAPTCHA verification failed.' });
-  }
-  const existing = await User.findOne({ email });
-  if (existing) {
-    return res.status(409).json({ message: 'Email already registered.' });
-  }
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ name, gender, email, password: hashedPassword });
-  // JWT token generation
-  const accessToken = jwt.sign(
-    { id: user._id, email: user.email, name: user.name },
-    process.env.JWT_SECRET,
-    { expiresIn: '15m' }
-  );
-  const refreshToken = jwt.sign(
-    { id: user._id, email: user.email, name: user.name },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: '7d' }
-  );
-  user.refreshToken = refreshToken;
-  await user.save();
+  if (req.method !== "POST") return res.status(405).end();
+  const { googleToken } = req.body;
+  if (!googleToken)
+    return res.status(400).json({ error: "Missing Google token" });
 
-  return res.status(201).json({
-    message: 'Signup successful.',
-    user: { name: user.name, gender: user.gender, email: user.email },
-    accessToken,
-    refreshToken
-  });
+  try {
+    // Decode and verify Google ID token using jose
+    const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const JWKS = await fetch("https://www.googleapis.com/oauth2/v3/certs").then(
+      (r) => r.json()
+    );
+    const keyStore = createLocalJWKSet(JWKS);
+    const { payload } = await jwtVerify(googleToken, keyStore, {
+      audience: GOOGLE_CLIENT_ID,
+      issuer: GOOGLE_ISSUERS,
+    });
+    const { email, name, sub: googleId, picture } = payload;
+
+    // Store user in MongoDB
+    await client.connect();
+    const db = client.db(dbName);
+    const users = db.collection("users");
+    await users.updateOne(
+      { email },
+      {
+        $set: {
+          email,
+          name,
+          googleId,
+          picture,
+          googleToken,
+          updatedAt: new Date(),
+        },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    );
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(401).json({ error: "Invalid Google token or DB error" });
+  } finally {
+    await client.close();
+  }
 }
