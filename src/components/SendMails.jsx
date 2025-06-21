@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import { Send, CircleX } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-// import "../../styles/customScrollbar.css";
-
-import "@/styles/customScrollbar.css";
 
 const SendMails = ({ emails = [], onSend, onClose }) => {
   const [scheduledTime, setScheduledTime] = useState("");
