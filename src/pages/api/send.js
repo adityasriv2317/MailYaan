@@ -17,6 +17,7 @@ async function sendEmails({ emails, userMail }) {
   oAuth2Client.setCredentials(token);
   const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
   const sendResults = [];
+  console.log(`job started at time: ${new Date().toISOString()}`);
   for (const mail of emails) {
     const to = mail.recipient?.Email;
     const subject = mail.subject;
@@ -40,6 +41,7 @@ async function sendEmails({ emails, userMail }) {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     try {
+      console.log(`Sending to ${to}`);
       await gmail.users.messages.send({
         userId: "me",
         requestBody: { raw: rawMessage },
@@ -47,6 +49,9 @@ async function sendEmails({ emails, userMail }) {
       sendResults.push({ to, status: "sent" });
     } catch (err) {
       sendResults.push({ to, status: "error", reason: err.message });
+    }
+    finally{
+      console.log(`job finished at time: ${new Date().toISOString()}`);
     }
   }
   return sendResults;
@@ -97,18 +102,25 @@ export default async function handler(req, res) {
     if (isNaN(scheduledDate.getTime())) {
       return res.status(400).json({ error: "Invalid scheduled time" });
     }
+    // Always use IST for scheduling
+    // Convert UTC ISO string to IST Date
+    const istOffset = 5.5 * 60; // in minutes
+    const utc = scheduledDate.getTime() + (scheduledDate.getTimezoneOffset() * 60000);
+    const istDate = new Date(utc + istOffset * 60000);
     const now = new Date();
-    if (scheduledDate <= now) {
+    const delay = istDate.getTime() - now.getTime();
+    if (delay <= 0) {
       // If scheduled time is now or in the past, send immediately
       const results = await sendEmails({ emails, userMail });
       return res.status(200).json({ success: true, results });
     }
-    // Schedule with BullMQ
+    // Schedule with BullMQ (IST)
     const job = await emailQueue.add(
       "sendEmail",
-      { emails, userMail },
-      { delay: scheduledDate.getTime() - now.getTime() }
+      { emails, userMail, scheduledTime: istDate.toISOString() },
+      { delay }
     );
+    console.log(`Scheduled email job with ID ${job.id} for ${userMail} at ${istDate.toISOString()} IST`);
     return res
       .status(200)
       .json({ success: true, scheduled: true, jobId: job.id });

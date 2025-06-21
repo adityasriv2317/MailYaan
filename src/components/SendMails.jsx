@@ -29,10 +29,27 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
           return;
         }
 
+        // Convert scheduledTime (local input) to IST and send as ISO string
+        let scheduledTimeIST = "";
+        if (scheduledTime) {
+          const [date, time] = scheduledTime.split("T");
+          if (date && time) {
+            const [year, month, day] = date.split("-").map(Number);
+            const [hour, minute] = time.split(":").map(Number);
+            // Create a Date object in local time
+            const localDate = new Date(year, month - 1, day, hour, minute);
+            // Convert to IST (UTC+5:30)
+            const istOffset = 5.5 * 60; // in minutes
+            const utc = localDate.getTime() + (localDate.getTimezoneOffset() * 60000);
+            const istDate = new Date(utc + istOffset * 60000);
+            scheduledTimeIST = istDate.toISOString();
+          }
+        }
+
         const response = await axios.post(
           "/api/send",
           {
-            scheduledTime,
+            scheduledTime: scheduledTimeIST,
             emails,
             userMail,
           },
