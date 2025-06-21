@@ -3,6 +3,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import GradientText from "@/ui/GradientText";
 import { useEffect } from "react";
+import { UserCircle } from "lucide-react";
 
 export default function Home() {
   useEffect(() => {
@@ -39,17 +40,18 @@ export default function Home() {
           </GradientText>
         </div>
         <div className="flex gap-4">
-          <Link
+          {/* <Link
             href="/login"
             className="px-5 py-2 rounded-lg bg-white text-indigo-700 font-semibold shadow hover:bg-indigo-50 border border-indigo-100 transition"
           >
             Login
-          </Link>
+          </Link> */}
           <Link
-            href="/signup"
-            className="px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-semibold shadow hover:to-indigo-700 hover:from-blue-600 transition"
+            href="/auth"
+            className="px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-semibold shadow hover:to-indigo-700 hover:from-blue-600 transition flex items-center"
           >
-            Sign Up
+            <UserCircle className="inline-block mr-2" />
+            Get Started
           </Link>
         </div>
       </motion.header>
@@ -59,7 +61,7 @@ export default function Home() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        <section className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 py-12">
+        <section className="w-full select-none max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 py-12">
           <div className="flex-1 flex flex-col items-start md:items-start text-left">
             <h1 className="text-4xl sm:text-6xl font-extrabold text-indigo-50 mb-6 leading-tight">
               Automate Your{" "}
@@ -79,7 +81,7 @@ export default function Home() {
                 Learn More
               </Link>
               <Link
-                href="/login"
+                href="/auth"
                 className="px-8 py-3 rounded-lg bg-white/10 text-indigo-200 font-bold text-lg shadow-lg hover:bg-indigo-50/20 hover:text-white border border-indigo-500 transition"
               >
                 Login
@@ -122,7 +124,7 @@ export default function Home() {
             MailYaan
           </Link>
           <span className="hidden md:inline text-gray-500">|</span>
-          <div className="text-xs text-gray-300 md:text-right w-full md:w-auto mt-2 md:mt-0">
+          <div className="text-xs text-gray-300 select-none md:text-right w-full md:w-auto mt-2 md:mt-0">
             © {new Date().getFullYear()} MailYaan.
           </div>
         </div>

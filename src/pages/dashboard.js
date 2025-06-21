@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
@@ -13,7 +15,7 @@ export default function Dashboard() {
       typeof window !== "undefined" &&
       !localStorage.getItem("mailyaan-auth")
     ) {
-      router.replace("/login");
+      router.replace("/auth");
     }
     // Try to get user name from localStorage (or set a default)
     const user = localStorage.getItem("mailyaan-user");
