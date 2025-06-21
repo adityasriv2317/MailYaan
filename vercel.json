@@ -1,8 +1,8 @@
-{
-  "cron": [
-    {
-      "path": "/api/process-scheduled-emails",
-      "schedule": "*/5 * * * *"
-    }
-  ]
-}
+// {
+//   "cron": [
+//     {
+//       "path": "/api/process-scheduled-emails",
+//       "schedule": "*/5 * * * *"
+//     }
+//   ]
+// }
