@@ -1,4 +1,4 @@
-# Dockerfile
+#DOCKERFILE
 FROM node:18-alpine
 
 WORKDIR /app
@@ -16,5 +16,5 @@ RUN npm run build
 # Expose Next.js default port
 EXPOSE 3000
 
-# Start the Next.js app (production mode)
+# Default command will be overridden by docker-compose for worker
 CMD ["npm", "start"]

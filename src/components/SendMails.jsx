@@ -8,72 +8,82 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
   const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
-    if (!scheduledTime) {
-      alert("Please select a scheduled time.");
+    const user = localStorage.getItem("mailyaan-user");
+    let sendersEmail = "";
+    try {
+      sendersEmail = user ? JSON.parse(user).email : "";
+    } catch (e) {
+      sendersEmail = "";
+    }
+    const token = localStorage.getItem("mailyaan-access-token");
+    if (!sendersEmail) {
+      alert("Could not determine your sender email. Please log in again.");
       return;
     }
-    const user = localStorage.getItem("mailyaan-user");
-    let userMail = "";
-    try {
-      userMail = user ? JSON.parse(user).email : "";
-    } catch (e) {
-      userMail = "";
+    if (emails.length === 0) {
+      alert("No emails to send.");
+      return;
     }
-    const token = localStorage.getItem("mailyaan-access-token"); // Get JWT token
-    if (onSend) onSend({ scheduledTime, emails });
-    if (!isSending) {
-      try {
-        setIsSending(true);
-        if (!userMail) {
-          alert("Could not determine your sender email. Please log in again.");
-          return;
-        }
-
-        // Convert scheduledTime (local input) to IST and send as ISO string
-        let scheduledTimeIST = "";
-        if (scheduledTime) {
-          const [date, time] = scheduledTime.split("T");
-          if (date && time) {
-            const [year, month, day] = date.split("-").map(Number);
-            const [hour, minute] = time.split(":").map(Number);
-            // Create a Date object in local time
-            const localDate = new Date(year, month - 1, day, hour, minute);
-            // Convert to IST (UTC+5:30)
-            const istOffset = 5.5 * 60; // in minutes
-            const utc = localDate.getTime() + (localDate.getTimezoneOffset() * 60000);
-            const istDate = new Date(utc + istOffset * 60000);
-            scheduledTimeIST = istDate.toISOString();
-          }
-        }
-
-        const response = await axios.post(
-          "/api/send",
+    // Prepare receiversEmail and description arrays
+    const receiversEmail = emails.map((mail) => mail.recipient?.Email || "");
+    const description = emails.map((mail) => mail.body || "");
+    const subject = emails[0]?.subject || "";
+    if (receiversEmail.length !== description.length) {
+      alert("Number of recipients and descriptions must match!");
+      return;
+    }
+    setIsSending(true);
+    try {
+      let response;
+      if (scheduledTime) {
+        // Format scheduledTime as yyyy-MM-dd'T'HH:mm:ss (local time)
+        const localDate = new Date(scheduledTime);
+        const pad = (n) => n.toString().padStart(2, "0");
+        const formattedTime = `${localDate.getFullYear()}-${pad(
+          localDate.getMonth() + 1
+        )}-${pad(localDate.getDate())}T${pad(localDate.getHours())}:${pad(
+          localDate.getMinutes()
+        )}:${pad(localDate.getSeconds())}`;
+        response = await axios.post(
+          "https://mailyaan.onrender.com/api/email/send-now",
           {
-            scheduledTime: scheduledTimeIST,
-            emails,
-            userMail,
+            sendersEmail,
+            receiversEmail,
+            subject,
+            description,
+            // scheduledTime: formattedTime,
           },
           {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { "access-token": token },
           }
         );
-        if (response.status === 200) {
-          alert("Emails sent successfully");
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          alert("Session expired or unauthorized. Please log in again.");
-          window.location.href = "/auth";
-        } else {
-          alert("Error sending emails");
-          console.error(error);
-        }
-      } finally {
-        setIsSending(false);
+      } else {
+        response = await axios.post(
+          "https://mailyaan.onrender.com/api/email/send-now",
+          {
+            sendersEmail,
+            receiversEmail,
+            subject,
+            description,
+          },
+          {
+            headers: { "access-token": token },
+          }
+        );
       }
+      if (response.status === 200) {
+        alert(response.data || response.statusText);
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        alert("Session expired or unauthorized. Please log in again.");
+        window.location.href = "/auth";
+      } else {
+        alert(error.response?.data || "Error sending emails");
+        console.error(error);
+      }
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -94,12 +104,21 @@ const SendMails = ({ emails = [], onSend, onClose }) => {
         >
           {/* Close Button */}
           <button
-            className="absolute top-5 right-6 text-zinc-400 hover:text-indigo-400 text-2xl font-bold focus:outline-none transition-colors"
+            className="absolute z-50 top-5 right-6 w-fit p-2 bg-white/20 cursor-pointer rounded-full text-zinc-400 hover:bg-indigo-400 hover:text-white text-2xl font-bold focus:outline-none transition-colors shadow-lg"
             onClick={onClose}
             aria-label="Close"
+            type="button"
           >
-            <CircleX className="inline-block" />
+            <motion.span
+              initial={{ rotate: 90, scale: 0.7, opacity: 0 }}
+              animate={{ rotate: 0, scale: 1, opacity: 1 }}
+              exit={{ rotate: -90, scale: 0.7, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <CircleX className="w-6 h-6" />
+            </motion.span>
           </button>
+
           <h2 className="text-3xl font-bold text-center mb-8 text-indigo-400 tracking-tight drop-shadow-lg">
             Review & Schedule Emails
           </h2>

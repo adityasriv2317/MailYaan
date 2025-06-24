@@ -1,12 +1,13 @@
 version: "3.8"
 
 services:
-  web:
+  app:
     build: .
     ports:
       - "3000:3000"
     environment:
       - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
     depends_on:
       - redis
 
@@ -14,11 +15,3 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-
-  worker:
-    build: .
-    environment:
-      - NODE_ENV=development
-    command: node ./worker.mjs
-    depends_on:
-      - redis

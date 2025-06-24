@@ -1,4 +1,4 @@
-import dbConnect from "./dbConnect";
+import dbConnect from "./dbConnect.js";
 import User from "./userModel";
 
 /**

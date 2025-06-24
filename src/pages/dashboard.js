@@ -3,13 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import {
-  MailCheck,
-  PlusCircle,
-  LogOut,
-  Sparkles,
-  User2,
-} from "lucide-react";
+import { MailCheck, PlusCircle, LogOut, Sparkles, User2 } from "lucide-react";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -95,11 +89,17 @@ export default function Dashboard() {
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-800/70 hover:bg-indigo-700/80 transition cursor-pointer select-none shadow border border-indigo-700"
             onClick={() => setPanelOpen((v) => !v)}
           >
-            {userPic ? (
+            {userPic &&
+            typeof userPic === "string" &&
+            userPic.startsWith("http") ? (
               <img
                 src={userPic}
-                alt={userName}
+                alt={userName || "User"}
                 className="w-8 h-8 rounded-full object-cover border-2 border-indigo-400"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                }}
+                referrerPolicy="no-referrer"
               />
             ) : (
               <span className="bg-indigo-600 rounded-full p-1 flex items-center justify-center">
